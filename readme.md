@@ -274,7 +274,7 @@ This project provides practical experience with:
 
 ## Author
 
-**Sri Bhargava**
+**G.Sri Bhargava**
 
 GitHub: [sri-bhargav-09](https://github.com/sri-bhargav-09)
 
