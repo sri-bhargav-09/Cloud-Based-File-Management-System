@@ -1,43 +1,57 @@
+
 const { Schema, model } = require("mongoose");
-require("dotenv").config();
 const transporter = require("../config/mail");
 
 const fileUploadSchema = new Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, "File name is required"],
+    trim: true,
   },
   imageUrl: {
     type: String,
+    required: [true, "File URL is required"],
   },
   tags: {
     type: String,
+    trim: true,
   },
   email: {
     type: String,
+    required: [true, "Recipient email is required"],
+    trim: true,
+    lowercase: true,
+    match: [
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      "Please provide a valid email address",
+    ],
   },
 });
 
+// Send a notification after the document is saved
 fileUploadSchema.post("save", async function (doc) {
   try {
-    console.log(doc); //whatever entry is created in database that is doc
-
-    // send mail
-    let info = await transporter.sendMail({
-      from: '"Subham 👻" <Subham@example.com>', // sender address
-      to: doc.email, // list of receivers
-      subject: "Hello ✔", // Subject line
-      text: "Hello world?", // plain text body
-      html: `<h2>Hello cloudinary image uploaded</h2> <p>View here : </p> <a href=${doc.imageUrl} >${doc.imageUrl}</a> `, // html body
+    await transporter.sendMail({
+      from: process.env.MAIL_USER,
+      to: doc.email,
+      subject: "Your file has been uploaded successfully!",
+      text: `Hello! Your file "${doc.name}" has been uploaded successfully. View it here: ${doc.imageUrl}`,
+      html: `
+        <h2>File uploaded successfully!</h2>
+        <p>Hello,</p>
+        <p>Your file <strong>${doc.name}</strong> has been uploaded successfully.</p>
+        <p>
+          <a href="${doc.imageUrl}">View your uploaded file</a>
+        </p>
+      `,
     });
 
-    // console.log(info);
+    console.log(`Email notification sent to ${doc.email}`);
   } catch (error) {
-    console.error(error);
+    console.error("Email notification failed:", error.message);
   }
 });
 
-//middleware must be created before creating model of our schema
 const FILEUPLOAD = model("fileUpload", fileUploadSchema);
 
 module.exports = FILEUPLOAD;
